@@ -24,12 +24,11 @@ private:
     G4int fNcryX;
     G4int fNcryY;
     G4int fNlayer;
-    std::vector<int> fHit_ix, fHit_iy, fHit_iz;
-    std::vector<double> fHit_x, fHit_y, fHit_z, fHit_E, fHit_NCherenkov, fHit_EScintillation;
-    double fVDEnergy;
-    double fETotal;
-    double fNCherenkovTotal;
-    double fEScintillationTotal;
+    std::vector<int> fHit_calo_ix, fHit_calo_iy, fHit_calo_iz;
+    std::vector<double> fHit_calo_avgX, fHit_calo_avgY, fHit_calo_Z, fHit_calo_E;
+    G4double fHit_tagger_avgX, fHit_tagger_avgY, fHit_tagger_Z, fHit_tagger_E;
+    G4double fHit_st_avgX, fHit_st_avgY, fHit_st_Z, fHit_st_E;
+    double f_calo_ETotal;
 };
 
 #endif

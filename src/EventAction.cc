@@ -3,10 +3,13 @@
 #include "G4HCofThisEvent.hh"
 #include "G4SDManager.hh"
 #include "CrystalHit.hh"
-#include "VirtualDetector.hh"
+#include "ScintillatingTracker.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "Tagger.hh"
+#include "ScintillatingTracker.hh"
 
 EventAction::EventAction(RunAction* runAction)
-: G4UserEventAction(), fRunAction(runAction), fCrystalHCID(-1), fVDEnergy(0.0)
+: G4UserEventAction(), fRunAction(runAction), fCrystalHCID(-1)
 {
   fNcryX = -999;
 }
@@ -31,19 +34,20 @@ void EventAction::BeginOfEventAction(const G4Event* event)
     fVertexX = 0.0;
     fVertexY = 0.0;
     fVertexZ = 0.0;
-    fHit_ix.clear();
-    fHit_iy.clear();
-    fHit_iz.clear();
-    fHit_x.clear();
-    fHit_y.clear();
-    fHit_z.clear();
-    fHit_E.clear();
-    fHit_NCherenkov.clear();
-    fHit_EScintillation.clear();
-    fVDEnergy = 0.0;
-    fETotal = 0.0;
-    fNCherenkovTotal = 0.0;
-    fEScintillationTotal = 0.0;
+    fHit_calo_ix.clear();
+    fHit_calo_iy.clear();
+    fHit_calo_iz.clear();
+    fHit_calo_avgX.clear();
+    fHit_calo_avgY.clear();
+    fHit_calo_Z.clear();
+    fHit_calo_E.clear();
+    f_calo_ETotal = 0.0;
+    fHit_tagger_avgX = 0.0;
+    fHit_tagger_avgY = 0.0;
+    fHit_tagger_Z = 0.0;
+    fHit_st_avgX = 0.0;
+    fHit_st_avgY = 0.0;
+    fHit_st_Z = 0.0;
 
     if(fCrystalHCID == -1)
         fCrystalHCID = G4SDManager::GetSDMpointer()->GetCollectionID("CrystalHitsCollection");
@@ -63,10 +67,8 @@ void EventAction::EndOfEventAction(const G4Event* event)
             auto hit = (*hitsCollection)[i];
             if (hit->GetEnergyDep() <= 0.) continue;
 
-	    //Compute total energy
-	    fETotal += hit->GetEnergyDep();
-	    fNCherenkovTotal += hit->GetNCherenkov();
-	    fEScintillationTotal += hit->GetScintillationEnergyDep();
+      	    //Compute total energy
+      	    f_calo_ETotal += hit->GetEnergyDep();
 
             // Compute unique crystal ID
             int id = hit->GetIx() + hit->GetIy() * fNcryX + hit->GetIz() * fNcryX * fNcryY;
@@ -79,33 +81,50 @@ void EventAction::EndOfEventAction(const G4Event* event)
             } else {
                 // Accumulate energy for repeated hits
                 crystalMap[id]->AddEnergy(hit->GetEnergyDep());
-		crystalMap[id]->AddNCherenkov(hit->GetNCherenkov());
-		crystalMap[id]->AddScintillationEnergy(hit->GetScintillationEnergyDep());
+                crystalMap[id]->AddXtimesE(hit->GetXtimesE());
+                crystalMap[id]->AddYtimesE(hit->GetYtimesE());
             }
         }
 
         // Fill event vectors from the map
         for (const auto& [id, hit] : crystalMap) {
-            fHit_ix.push_back(hit->GetIx());
-            fHit_iy.push_back(hit->GetIy());
-            fHit_iz.push_back(hit->GetIz());
+            fHit_calo_ix.push_back(hit->GetIx());
+            fHit_calo_iy.push_back(hit->GetIy());
+            fHit_calo_iz.push_back(hit->GetIz());
 
             auto center = hit->GetPos();
-            fHit_x.push_back(center.x());
-            fHit_y.push_back(center.y());
-            fHit_z.push_back(center.z());
+            if (hit->GetEnergyDep() > 0.) {
+              fHit_calo_avgX.push_back(hit->GetXtimesE() / hit->GetEnergyDep());
+              fHit_calo_avgY.push_back(hit->GetYtimesE() / hit->GetEnergyDep());
+            }
+            else {
+              fHit_calo_avgX.push_back(-999.);
+              fHit_calo_avgY.push_back(-999.);
+            }
 
-            fHit_E.push_back(hit->GetEnergyDep() / CLHEP::MeV);
- 	    fHit_NCherenkov.push_back(hit->GetNCherenkov());
-	    fHit_EScintillation.push_back(hit->GetScintillationEnergyDep() / CLHEP::MeV);
+            fHit_calo_Z.push_back(center.z());
+
+            fHit_calo_E.push_back(hit->GetEnergyDep() / CLHEP::MeV);
 
             delete hit;  // free the cloned hit
         }
     }
 
-    // --- Virtual Detector
-    auto vd = static_cast<VirtualDetector*>(G4SDManager::GetSDMpointer()->FindSensitiveDetector("VD"));
-    fVDEnergy = vd ? vd->GetTotalEnergy() / CLHEP::MeV : 0.;
+    // --- Scintillating Tracker
+    auto st = static_cast<ScintillatingTracker*>(G4SDManager::GetSDMpointer()->FindSensitiveDetector("st"));
+    fHit_st_E = st ? st->GetTotalEnergy() / CLHEP::MeV : 0.;
+    fHit_st_avgX = st ? st->GetAverageX() : -999.;
+    fHit_st_avgY = st ? st->GetAverageY() : -999.;
+    fHit_st_Z = G4PhysicalVolumeStore::GetInstance()->GetVolume("st_phys")->GetObjectTranslation().z();
+
+
+    // --- Tagger
+    auto tgt = static_cast<Tagger*>(G4SDManager::GetSDMpointer()->FindSensitiveDetector("tgt"));
+    fHit_tagger_E = tgt ? tgt->GetTotalEnergy() / CLHEP::MeV : 0.;
+    fHit_tagger_avgX = tgt ? tgt->GetAverageX() : -999.;
+    fHit_tagger_avgY = tgt ? tgt->GetAverageY() : -999.;
+    fHit_tagger_Z = G4PhysicalVolumeStore::GetInstance()->GetVolume("tagger_phys")->GetObjectTranslation().z();
+
 
     //Energy of primary particle
 
@@ -131,35 +150,44 @@ void EventAction::EndOfEventAction(const G4Event* event)
     fRunAction->fVertexY = y_v;
     fRunAction->fVertexZ = z_v;
 
-    fRunAction->fHit_ix = fHit_ix;
-    fRunAction->fHit_iy = fHit_iy;
-    fRunAction->fHit_iz = fHit_iz;
+    fRunAction->fHit_calo_ix = fHit_calo_ix;
+    fRunAction->fHit_calo_iy = fHit_calo_iy;
+    fRunAction->fHit_calo_iz = fHit_calo_iz;
 
-    fRunAction->fHit_x = fHit_x;
-    fRunAction->fHit_y = fHit_y;
-    fRunAction->fHit_z = fHit_z;
-    fRunAction->fHit_E = fHit_E;
-    fRunAction->fHit_NCherenkov = fHit_NCherenkov;
-    fRunAction->fHit_EScintillation = fHit_EScintillation;
+    fRunAction->fHit_calo_avgX = fHit_calo_avgX;
+    fRunAction->fHit_calo_avgY = fHit_calo_avgY;
+    fRunAction->fHit_calo_Z = fHit_calo_Z;
+    fRunAction->fHit_calo_E = fHit_calo_E;
 
-    fRunAction->fVDEnergy = fVDEnergy;
-    fRunAction->fETotal = fETotal;
-    fRunAction->fNCherenkovTotal = fNCherenkovTotal;
-    fRunAction->fEScintillationTotal = fEScintillationTotal;
+    fRunAction->fHit_tagger_E = fHit_tagger_E;
+    fRunAction->fHit_tagger_avgX = fHit_tagger_avgX;
+    fRunAction->fHit_tagger_avgY = fHit_tagger_avgY;
+    fRunAction->fHit_tagger_Z = fHit_tagger_Z;
+
+    fRunAction->fHit_st_E = fHit_st_E;
+    fRunAction->fHit_st_avgX = fHit_st_avgX;
+    fRunAction->fHit_st_avgY = fHit_st_avgY;
+    fRunAction->fHit_st_Z = fHit_st_Z;
+
+    fRunAction->f_calo_ETotal = f_calo_ETotal;
 
     fRunAction->GetTree()->Fill();
 
     // --- Clear vectors for next event
-    fHit_ix.clear();
-    fHit_iy.clear();
-    fHit_iz.clear();
-    fHit_x.clear();
-    fHit_y.clear();
-    fHit_z.clear();
-    fHit_E.clear();
-    fHit_NCherenkov.clear();
-    fHit_EScintillation.clear();
-    fVDEnergy = 0.;
-    fNCherenkovTotal = 0.0;
-    fEScintillationTotal = 0.0;
+    fHit_calo_ix.clear();
+    fHit_calo_iy.clear();
+    fHit_calo_iz.clear();
+    fHit_calo_avgX.clear();
+    fHit_calo_avgY.clear();
+    fHit_calo_Z.clear();
+    fHit_calo_E.clear();
+    fHit_tagger_E = 0.;
+    fHit_tagger_avgX = 0.;
+    fHit_tagger_avgY = 0.;
+    fHit_tagger_Z = 0.;
+    fHit_st_E = 0.;
+    fHit_st_avgX = 0.;
+    fHit_st_avgY = 0.;
+    fHit_st_Z = 0.;
+    f_calo_ETotal = 0.;
 }

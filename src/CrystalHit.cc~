@@ -1,5 +1,0 @@
-#include "CrystalHit.hh"
-
-CrystalHit::CrystalHit() : G4VHit(), fID(-1), fEdep(0.) {}
-
-CrystalHit::~CrystalHit() {}

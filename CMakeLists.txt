@@ -33,9 +33,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
 set(SOURCES
     src/CrilinSim.cc
     src/CrystalHit.cc
-    src/CrilinGeometry.cc
+    src/CaloGeometry.cc
     src/CrystalSD.cc
-    src/VirtualDetector.cc
+    src/ScintillatingTracker.cc
+    src/Tagger.cc
     src/EventAction.cc
     src/SteppingAction.cc
     src/DetectorConstruction.cc
@@ -46,9 +47,10 @@ set(SOURCES
 
 set(HEADERS
     include/CrystalHit.hh
-    include/CrilinGeometry.hh
+    include/CaloGeometry.hh
     include/CrystalSD.hh
-    include/VirtualDetector.hh
+    include/ScintillatingTracker.hh
+    include/Tagger.hh
     include/EventAction.hh
     include/SteppingAction.hh
     include/DetectorConstruction.hh

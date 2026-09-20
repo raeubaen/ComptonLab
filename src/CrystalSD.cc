@@ -37,6 +37,7 @@ void CrystalSD::Initialize(G4HCofThisEvent* hce)
     hce->AddHitsCollection(hcID, fHitsCollection);
 
     // Clear map
+
     fCrystalHitMap.clear();
 
     // Pre-create hits for all crystals in this SD
@@ -63,49 +64,20 @@ G4bool CrystalSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     const G4VTouchable* touchable = step->GetPreStepPoint()->GetTouchable();
     G4int crystalID = touchable->GetReplicaNumber(0);
-    //std::cout << "crystalID beccato: " << crystalID << std::endl;
+
     if (crystalID < 0 || crystalID >= static_cast<G4int>(fCrystalHitMap.size())) return false;
 
-    //Compute energy released via Cherenkov light
+    G4ThreeVector pos = 0.5 * (step->GetPreStepPoint()->GetPosition()
+                         + step->GetPostStepPoint()->GetPosition());
 
-    G4double nCh = 0;
-    G4double edepSc = 0;
+    G4double x = pos.x();
+    G4double y = pos.y();
 
-    G4double length = step->GetStepLength(); // dx (mm)
-    G4double p = step->GetTrack()->GetMomentum().mag();
-    G4double E = step->GetTrack()->GetTotalEnergy();
-    G4double beta = 0; 
-    if (p>0 && E>0) beta = p / E; //beta
-    G4double n = 1.82; //avarage n for PbF2 in the photon energy range
-
-    if (length>0 && beta>1./n) {
-
-    	G4double charge = step->GetTrack()->GetParticleDefinition()->GetPDGCharge(); //Charge
-
-    	G4double beta = p / E; //beta
-
-    	//Typical energy range for the PDE peak of a SiPM
-    	G4double lambda_min = 350e-6; //mm, corresponds to 350 nm
-    	G4double lambda_max = 550e-6; //mm, corresponds to 550 nm 
-
-    	nCh = length * 0.0459 * charge * charge * (1. - 1./(beta*beta*n*n)) * (1./lambda_min-1./lambda_max); //number of Cherenkov photons
-
-    	//Compute scintillation energy, assuming Birks law parameters for PbWO4. Ioniziation is similar for PbF2 and PbWO4
-
-    	//G4double S = 200; //photons/MeV
-    	//G4double kB = 0.005; //mm/MeV
-
-    	//G4double lightyield = S*edep/(1+kB*edep/length); //photons per MeV
-    	//edepSc = 2.95e-6 * lightyield; //assuming PbWO4 scintillation peak at 420 nm, 2.95 eV per photon  
-
-      edepSc = 0;
-      if (step->GetTrack()->GetParentID() != 0) edepSc = nCh;
-    }
 
     // Add energy
     fCrystalHitMap[crystalID]->AddEnergy(edep);
-    fCrystalHitMap[crystalID]->AddNCherenkov(nCh);
-    fCrystalHitMap[crystalID]->AddScintillationEnergy(edepSc);
+    fCrystalHitMap[crystalID]->AddXtimesE(x*edep);
+    fCrystalHitMap[crystalID]->AddYtimesE(y*edep);
 
     return true;
 }

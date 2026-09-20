@@ -1,15 +1,15 @@
-#ifndef CRILINGEOMETRY_HH
-#define CRILINGEOMETRY_HH
+#ifndef CaloGeoMETRY_HH
+#define CaloGeoMETRY_HH
 
 #include "G4ThreeVector.hh"
 #include "globals.hh"
 
-class CrilinGeometry
+class CaloGeometry
 {
 public:
 
-    CrilinGeometry() {};
-    ~CrilinGeometry();
+    CaloGeometry() {};
+    ~CaloGeometry();
 
     // Main geometry utility
     G4ThreeVector GetCrystalCenter(G4int i, G4int j, G4int k) const;

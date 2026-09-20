@@ -6,7 +6,7 @@
 #include "G4VUserDetectorConstruction.hh"
 #include "G4ThreeVector.hh"
 #include "globals.hh"
-#include "CrilinGeometry.hh"
+#include "CaloGeometry.hh"
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -28,12 +28,12 @@ private:
   G4Material* fFR4;               // Material for the electronic boards
   G4Material* fSiPM;              // Material for the SiPMs
   G4Material* fKapton;   // Material for the Kapton
-  int NcryX = 7;
-  int NcryY = 7;
-  int Nlayer = 5;
+  int NcryX = 8;
+  int NcryY = 1;
+  int Nlayer = 1;
   void DefineMaterials();
   G4VPhysicalVolume* ConstructCalorimeter();
-  CrilinGeometry* fGeometry;
+  CaloGeometry* fGeometry;
 };
 
 #endif

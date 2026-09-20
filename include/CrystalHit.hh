@@ -9,15 +9,15 @@
 class CrystalHit : public G4VHit {
 public:
     CrystalHit()
-        : ix(-1), iy(-1), iz(-1), pos(G4ThreeVector()), edep(0.), nch(0.), esc(0.) {}
+        : ix(-1), iy(-1), iz(-1), pos(G4ThreeVector()), edep(0.), xTimesE(0.), yTimesE(0.) {}
     virtual ~CrystalHit() {}
 
     // Setters
     void SetIndices(G4int i, G4int j, G4int k) { ix=i; iy=j; iz=k; }
     void SetPos(const G4ThreeVector& p) { pos = p; }
     void AddEnergy(G4double e) { edep += e; }
-    void AddNCherenkov(G4double n) { nch += n; }
-    void AddScintillationEnergy(G4double e) { esc += e; }
+    void AddXtimesE(G4double _xTimesE) { xTimesE += _xTimesE; }
+    void AddYtimesE(G4double _yTimesE) { yTimesE += _yTimesE; }
 
     // Getters
     G4int GetIx() const { return ix; }
@@ -25,15 +25,13 @@ public:
     G4int GetIz() const { return iz; }
     G4ThreeVector GetPos() const { return pos; }
     G4double GetEnergyDep() const { return edep; }
-    G4double GetNCherenkov() const { return nch; }
-    G4double GetScintillationEnergyDep() const { return esc; }
+    G4double GetXtimesE() const { return xTimesE; }
+    G4double GetYtimesE() const { return yTimesE; }
 
 private:
     G4int ix, iy, iz;          // indices in the crystal grid
     G4ThreeVector pos;         // absolute position in world coordinates
-    G4double edep;             // deposited energy
-    G4double nch;             // number of Cherenkov photons emitted
-    G4double esc;             // deposited energy measured from Scintillation light
+    G4double edep, xTimesE, yTimesE;             // deposited energy, x*E, y*E
 };
 
 typedef G4THitsCollection<CrystalHit> CrystalHitsCollection;
