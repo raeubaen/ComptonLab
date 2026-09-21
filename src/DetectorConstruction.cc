@@ -63,7 +63,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
     G4double calosizez=Nlayer*pitch;
     G4double layerStep = crystalLength;
 
-    G4double caloZoffset = 2.5*cm;
+    G4double caloZoffset = 4*cm;
 
     G4Box* solidcalo = new G4Box("solidcalo", 0.5*calosizex,0.5*calosizey,0.5*(calosizez+0.4*mm));
     G4LogicalVolume* logiccalo = new G4LogicalVolume(solidcalo, logicWorld->GetMaterial(), "logiccalo");
@@ -107,7 +107,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
 
     // --- Scintillating tracker parameters
     G4double stThickness = 5*mm;  // thin plane
-    G4double stPosZ = 2*cm + stThickness/2.0; // just before calorimeter
+    G4double stPosZ = 1.7*cm + stThickness/2.0; // just before calorimeter
 
     // Create the solid
     G4Box* stSolid = new G4Box("st_solid", 1.5*cm/2.0, 1.5*cm/2.0, stThickness/2.0);
@@ -192,10 +192,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
 
     // --- tagger parameters
     G4double taggerThickness = 5*mm;  // thin plane
-    G4double taggerPosZ = -3*cm + taggerThickness/2.0; // just before calorimeter
+    G4double taggerPosZ = -5*cm + taggerThickness/2.0; // just before calorimeter
 
     // Create the solid
-    G4Box* taggerSolid = new G4Box("tagger_solid", 1*cm, 1*cm, taggerThickness/2.0);
+    G4Box* taggerSolid = new G4Box("tagger_solid", 1*cm/2., 1*cm/2, taggerThickness/2.0);
 
     // Get material safely
     G4Material* tagger_material = nist->FindOrBuildMaterial("G4_PbWO4"); // Galactic = vacuum
