@@ -63,7 +63,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
     G4double calosizez=Nlayer*pitch;
     G4double layerStep = crystalLength;
 
-    G4double caloZoffset = 6*cm;
+    G4double caloZoffset = 2.5*cm;
 
     G4Box* solidcalo = new G4Box("solidcalo", 0.5*calosizex,0.5*calosizey,0.5*(calosizez+0.4*mm));
     G4LogicalVolume* logiccalo = new G4LogicalVolume(solidcalo, logicWorld->GetMaterial(), "logiccalo");
@@ -107,10 +107,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
 
     // --- Scintillating tracker parameters
     G4double stThickness = 5*mm;  // thin plane
-    G4double stPosZ = 3*cm + stThickness/2.0; // just before calorimeter
+    G4double stPosZ = 2*cm + stThickness/2.0; // just before calorimeter
 
     // Create the solid
-    G4Box* stSolid = new G4Box("st_solid", calosizex/2.0, calosizey/2.0, stThickness/2.0);
+    G4Box* stSolid = new G4Box("st_solid", 1.5*cm/2.0, 1.5*cm/2.0, stThickness/2.0);
 
     // Get material safely
     G4NistManager* nist = G4NistManager::Instance();
@@ -143,7 +143,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
     G4double tgtPosZ = 1*cm + tgtThickness/2.0; // just before calorimeter
 
     // Create the solid
-    G4Box* tgtSolid = new G4Box("tgt_solid", calosizey/2.0, calosizey/2.0, tgtThickness/2.0);
+    G4Box* tgtSolid = new G4Box("tgt_solid", 1.5*cm/2.0, 1.5*cm/2.0, tgtThickness/2.0);
 
     // Get material safely
     G4Material* graphite = nist->FindOrBuildMaterial("G4_GRAPHITE"); // Galactic = vacuum

@@ -41,7 +41,6 @@ set(SOURCES
     src/SteppingAction.cc
     src/DetectorConstruction.cc
     src/PrimaryGeneratorAction.cc
-    src/PrimaryGeneratorMessenger.cc
     src/RunAction.cc
 )
 
@@ -55,7 +54,6 @@ set(HEADERS
     include/SteppingAction.hh
     include/DetectorConstruction.hh
     include/PrimaryGeneratorAction.hh
-    include/PrimaryGeneratorMessenger.hh
     include/RunAction.hh
 )
 

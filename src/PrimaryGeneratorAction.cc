@@ -1,5 +1,4 @@
 #include "PrimaryGeneratorAction.hh"
-#include "PrimaryGeneratorMessenger.hh"
 
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
@@ -7,57 +6,59 @@
 #include "G4Event.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "G4Box.hh"
+#include "G4RandomDirection.hh"
+#include "G4LogicalVolume.hh"
 
 PrimaryGeneratorAction::PrimaryGeneratorAction()
 : G4VUserPrimaryGeneratorAction(),
-  fParticleGun(new G4ParticleGun(1)),
-  fMessenger(nullptr),
-  fSigmaX(0*mm),
-  fSigmaY(0*mm)
-{
-    // Default particle: electron
-    //G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-    //G4ParticleDefinition* particle = particleTable->FindParticle("e-");
-    //fParticleGun->SetParticleDefinition(particle);
-
-    // Default direction along -z
-    //fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., -1.));
-    //fParticleGun->SetParticleEnergy(240*MeV);
-
-    // Default position center (will be smeared in GeneratePrimaries)
-    //fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., 30*cm));
-
-    // Create messenger to control sigmaX/Y
-    fMessenger = new PrimaryGeneratorMessenger(this);
-}
+  fParticleGun(new G4ParticleGun(1)) {}
 
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
     delete fParticleGun;
-    delete fMessenger;
 }
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-    // Central position from /gun/position
-    G4ThreeVector center = fParticleGun->GetParticlePosition();
 
-    // Gaussian smear in x and y only
-    G4double x = center.x() + (2.0 * G4UniformRand() - 1.0) * 2.5 * mm;
-    G4double y = center.y() + (2.0 * G4UniformRand() - 1.0) * 2.5 * mm;
-    G4double z = center.z();
+    auto source = G4PhysicalVolumeStore::GetInstance()->GetVolume("source_phys");
+    auto box = static_cast<G4Box*>(source->GetLogicalVolume()->GetSolid());
 
-    fParticleGun->SetParticlePosition(G4ThreeVector(x, y, z));
+    G4ThreeVector localPos(
+        (2.*G4UniformRand()-1.) * box->GetXHalfLength(),
+        (2.*G4UniformRand()-1.) * box->GetYHalfLength(),
+        (2.*G4UniformRand()-1.) * box->GetZHalfLength()
+    );
 
-    //Uniform energy distribution
-    //G4double E_min = 30*GeV;
-    //G4double E_max = 100.0*GeV;
-    G4double energy = 150 * GeV; //G4UniformRand() * (E_max - E_min) + E_min;
+    G4ThreeVector pos = source->GetObjectRotationValue() * localPos
+                      + source->GetObjectTranslation();
 
-    fParticleGun->SetParticleEnergy(energy);
+    fParticleGun->SetParticlePosition(pos);
 
+
+    // direzione isotropa
+    G4ThreeVector dir = G4RandomDirection();
+
+
+    // Find the particle table
+    G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+
+    // Find the specific particle pointer
+    G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+
+    // Set it to your fParticleGun instance
+    fParticleGun->SetParticleDefinition(particle);
+
+    // gamma 1
+    fParticleGun->SetParticleEnergy(511.*keV);
+    fParticleGun->SetParticlePosition(pos);
+    fParticleGun->SetParticleMomentumDirection(dir);
     fParticleGun->GeneratePrimaryVertex(anEvent);
 
-    fParticleGun->SetParticlePosition(center);
+    // gamma 2: back-to-back
+    fParticleGun->SetParticleMomentumDirection(-dir);
+    fParticleGun->GeneratePrimaryVertex(anEvent);
 
 }

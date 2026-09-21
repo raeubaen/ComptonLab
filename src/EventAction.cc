@@ -119,10 +119,10 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
 
     // --- Tagger
-    auto tgt = static_cast<Tagger*>(G4SDManager::GetSDMpointer()->FindSensitiveDetector("tgt"));
-    fHit_tagger_E = tgt ? tgt->GetTotalEnergy() / CLHEP::MeV : 0.;
-    fHit_tagger_avgX = tgt ? tgt->GetAverageX() : -999.;
-    fHit_tagger_avgY = tgt ? tgt->GetAverageY() : -999.;
+    auto tagger = static_cast<Tagger*>(G4SDManager::GetSDMpointer()->FindSensitiveDetector("tagger"));
+    fHit_tagger_E = tagger ? tagger->GetTotalEnergy() / CLHEP::MeV : 0.;
+    fHit_tagger_avgX = tagger ? tagger->GetAverageX() : -999.;
+    fHit_tagger_avgY = tagger ? tagger->GetAverageY() : -999.;
     fHit_tagger_Z = G4PhysicalVolumeStore::GetInstance()->GetVolume("tagger_phys")->GetObjectTranslation().z();
 
 
