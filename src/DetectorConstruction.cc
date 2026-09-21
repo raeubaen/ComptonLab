@@ -107,7 +107,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
 
     // --- Scintillating tracker parameters
     G4double stThickness = 5*mm;  // thin plane
-    G4double stPosZ = 1.7*cm + stThickness/2.0; // just before calorimeter
+    G4double stPosZ = 1*cm + stThickness/2.0; // just before calorimeter
 
     // Create the solid
     G4Box* stSolid = new G4Box("st_solid", 1.5*cm/2.0, 1.5*cm/2.0, stThickness/2.0);
@@ -137,37 +137,9 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
     stLogic->SetSensitiveDetector(st);
 
 
-
-    // --- Target parameters
-    G4double tgtThickness = 5*mm;  // thin plane
-    G4double tgtPosZ = 1*cm + tgtThickness/2.0; // just before calorimeter
-
-    // Create the solid
-    G4Box* tgtSolid = new G4Box("tgt_solid", 1.5*cm/2.0, 1.5*cm/2.0, tgtThickness/2.0);
-
-    // Get material safely
-    G4Material* graphite = nist->FindOrBuildMaterial("G4_GRAPHITE"); // Galactic = vacuum
-
-    // Create logical volume
-    G4LogicalVolume* tgtLogic = new G4LogicalVolume(tgtSolid, graphite, "tgt_logical");
-    tgtLogic->SetVisAttributes(new G4VisAttributes(G4Colour(1.0, 1, 1.0)));
-
-    // Place it in the world
-    new G4PVPlacement(nullptr,
-                      G4ThreeVector(0., 0., tgtPosZ),
-                      tgtLogic,
-                      "tgt_phys",
-                      logicWorld,
-                      false,
-                      0,
-                      true); // checkOverlaps = true
-
-
-
-
     // --- source parameters
     G4double sourceThickness = 5*mm;  // thin plane
-    G4double sourcePosZ = 0.5*cm + sourceThickness/2.0; // just before calorimeter
+    G4double sourcePosZ = 0*cm; // + sourceThickness/2.0; // just before calorimeter
 
     // Create the solid
     G4Box* sourceSolid = new G4Box("source_solid", 0.5*mm, 0.5*mm, sourceThickness/2.0);
@@ -192,10 +164,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter() {
 
     // --- tagger parameters
     G4double taggerThickness = 5*mm;  // thin plane
-    G4double taggerPosZ = -5*cm + taggerThickness/2.0; // just before calorimeter
+    G4double taggerPosZ = -3*cm + taggerThickness/2.0; // just before calorimeter
 
     // Create the solid
-    G4Box* taggerSolid = new G4Box("tagger_solid", 1*cm/2., 1*cm/2, taggerThickness/2.0);
+    G4Box* taggerSolid = new G4Box("tagger_solid", 3*cm/2., 3*cm/2, taggerThickness/2.0);
 
     // Get material safely
     G4Material* tagger_material = nist->FindOrBuildMaterial("G4_PbWO4"); // Galactic = vacuum
